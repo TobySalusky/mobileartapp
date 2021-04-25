@@ -23,25 +23,25 @@ const DrawScreen = () => {
 
 	const linesRef = React.useRef([])
 	const drawingRef = React.useRef(false)
+	const [penColor, setPenColor] = React.useState('black')
 
 	const [theme] = React.useContext(ThemeContext)
-
 	const [leftBarActive, setLeftBarActive] = React.useState(false)
 	const [rightBarActive, setRightBarActive] = React.useState(false)
 	const sideTabOpenBuffer = 8
 
 	const gesturePoint = (gestureState) => {
-		return {x:gestureState.x0 + gestureState.dx, y:gestureState.y0 + gestureState.dy}
+		return [gestureState.x0 + gestureState.dx, gestureState.y0 + gestureState.dy]
 	}
 
 	const appendPoint = (point) => {
 		const lines = linesRef.current
-		lines[lines.length - 1].push(point)
+		lines[lines.length - 1].points.push(point)
 	}
 
 	const startLine = () => {
 		const lines = linesRef.current
-		lines.push([])
+		lines.push({color: penColor, points:[]})
 	}
 
 	React.useEffect(() => {
@@ -64,19 +64,22 @@ const DrawScreen = () => {
 		ctx.clearRect(0, 0, window.width, window.height)
 
 		const lines = linesRef.current
-		for (const points of lines) {
+		for (const {color, points} of lines) {
 
 			if (points.length === 0) continue
 
 			const start = points[0]
+
+			ctx.strokeStyle = color;
+
 			ctx.beginPath();
-			ctx.moveTo(start.x, start.y);
+			ctx.moveTo(start[0], start[1]);
 
 			for (let i = 0; i < points.length; i++) {
 
 				const point = points[i]
 
-				ctx.lineTo(point.x, point.y);
+				ctx.lineTo(point[0], point[1]);
 			}
 			ctx.stroke();
 		}
@@ -86,7 +89,7 @@ const DrawScreen = () => {
 
 		const lines = linesRef.current
 
-		const points = lines[lines.length - 1]
+		const points = lines[lines.length - 1].points
 
 		if (points.length < 1) return;
 
@@ -94,9 +97,11 @@ const DrawScreen = () => {
 		const from = (points.length === 1) ? points[i] : points[i - 1]
 		const to = points[i]
 
+		ctx.strokeStyle = penColor;
+
 		ctx.beginPath();
-		ctx.moveTo(from.x, from.y);
-		ctx.lineTo(to.x, to.y)
+		ctx.moveTo(from[0], from[1]);
+		ctx.lineTo(to[0], to[1])
 		ctx.stroke();
 	}
 
@@ -198,7 +203,7 @@ const DrawScreen = () => {
 				</View>
 
 				<LeftSideBar active={leftBarActive} setActive={setLeftBarActive}/>
-				<RightSideBar active={rightBarActive} setActive={setRightBarActive}/>
+				<RightSideBar active={rightBarActive} setActive={setRightBarActive} color={penColor} setColor={setPenColor}/>
 
 			</View>
 
