@@ -24,11 +24,12 @@ const DrawScreen = () => {
 	const linesRef = React.useRef([])
 	const drawingRef = React.useRef(false)
 	const [penColor, setPenColor] = React.useState('black')
+	const [lineWidth, setLineWidth] = React.useState(8)
 
 	const [theme] = React.useContext(ThemeContext)
 	const [leftBarActive, setLeftBarActive] = React.useState(false)
 	const [rightBarActive, setRightBarActive] = React.useState(false)
-	const sideTabOpenBuffer = 8
+	const sideTabOpenBuffer = 15
 
 	const gesturePoint = (gestureState) => {
 		return [gestureState.x0 + gestureState.dx, gestureState.y0 + gestureState.dy]
@@ -53,11 +54,18 @@ const DrawScreen = () => {
 		const ctx = canvas.getContext('2d')
 
 		ctx.strokeStyle = 'black';
-		ctx.lineWidth = 8;
+		ctx.lineWidth = lineWidth;
 		ctx.lineCap = 'round'
 
 		ctxRef.current = ctx
 	}, [])
+
+	const drawDot = (ctx, x, y, diameter, color) => {
+		ctx.fillStyle = color;
+		ctx.beginPath();
+		ctx.arc(x, y, diameter / 2, 0, 2 * Math.PI, true);
+		ctx.fill();
+	}
 
 	const renderCanvas = (ctx) => {
 
@@ -66,22 +74,30 @@ const DrawScreen = () => {
 		const lines = linesRef.current
 		for (const {color, points} of lines) {
 
-			if (points.length === 0) continue
+			if (points.length === 0) {
+				continue
+			} else if (points.length === 1) {
 
-			const start = points[0]
+				const point = points[0]
+				drawDot(ctx, point[0], point[1], lineWidth, color)
 
-			ctx.strokeStyle = color;
+			} else {
 
-			ctx.beginPath();
-			ctx.moveTo(start[0], start[1]);
+				const start = points[0]
 
-			for (let i = 0; i < points.length; i++) {
+				ctx.strokeStyle = color;
 
-				const point = points[i]
+				ctx.beginPath();
+				ctx.moveTo(start[0], start[1]);
 
-				ctx.lineTo(point[0], point[1]);
+				for (let i = 0; i < points.length; i++) {
+
+					const point = points[i]
+
+					ctx.lineTo(point[0], point[1]);
+				}
+				ctx.stroke();
 			}
-			ctx.stroke();
 		}
 	}
 
@@ -93,7 +109,16 @@ const DrawScreen = () => {
 
 		if (points.length < 1) return;
 
+		if (points.length === 1) {
+
+			const point = points[0]
+			drawDot(ctx, point[0], point[1], lineWidth, penColor)
+
+			return;
+		}
+
 		let i = points.length - 1
+
 		const from = (points.length === 1) ? points[i] : points[i - 1]
 		const to = points[i]
 
@@ -103,6 +128,26 @@ const DrawScreen = () => {
 		ctx.moveTo(from[0], from[1]);
 		ctx.lineTo(to[0], to[1])
 		ctx.stroke();
+	}
+
+	const collapseLine = () => {
+		const lines = linesRef.current
+		const line = lines[lines.length - 1]
+
+		const points = line.points
+
+		const newPoints = []
+
+		let last;
+		for (let i = 0; i < points.length; i++) {
+			const point = points[i]
+			if (i === 0 || point[0] !== last[0] || point[1] !== last[1]) {
+				newPoints.push(point)
+			}
+			last = point;
+		}
+
+		line.points = newPoints
 	}
 
 	const addUndo = () => {
@@ -145,8 +190,6 @@ const DrawScreen = () => {
 	const clearCanvas = () => {
 		addUndo()
 
-		console.log('cleared!');
-
 		const lines = linesRef.current
 		if (lines.length > 0) {
 			lines.splice(0, lines.length)
@@ -180,6 +223,8 @@ const DrawScreen = () => {
 
 	const handlePanResponderEnd = (event, gestureState) => {
 		drawingRef.current = false
+
+		collapseLine()
 	};
 
 
