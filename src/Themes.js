@@ -8,6 +8,8 @@ export const lightTheme = {
 	sideBar: '#eaeaea',
 	sideBarBorder: 'gray',
 
+	toolButtonActive: 'orange',
+
 	canvasBackground: 'white',
 
 
@@ -22,6 +24,8 @@ export const darkTheme = {
 
 	sideBar: '#5b5b5b',
 	sideBarBorder: '#111111',
+
+	toolButtonActive: 'orange',
 
 	canvasBackground: 'lightgray',
 

@@ -6,6 +6,7 @@ import UndoRedoBar from "../components/UndoRedoBar";
 import { ThemeContext } from "../context/ThemeContext";
 import LeftSideBar from "../components/LeftSideBar";
 import RightSideBar from "../components/RightSideBar";
+import {erase} from "../LineUtil";
 
 
 const window = {
@@ -25,6 +26,8 @@ const DrawScreen = () => {
 	const drawingRef = React.useRef(false)
 	const [penColor, setPenColor] = React.useState('black')
 	const [lineWidth, setLineWidth] = React.useState(8)
+	const [eraserLineWidth, setEraserLineWidth] = React.useState(13)
+	const [tool, setTool] = React.useState('pen')
 
 	const [theme] = React.useContext(ThemeContext)
 	const [leftBarActive, setLeftBarActive] = React.useState(false)
@@ -42,7 +45,7 @@ const DrawScreen = () => {
 
 	const startLine = () => {
 		const lines = linesRef.current
-		lines.push({color: penColor, points:[]})
+		lines.push({color: penColor, lineWidth: determineLineWidth(), points:[], type: undefined})
 	}
 
 	React.useEffect(() => {
@@ -67,12 +70,17 @@ const DrawScreen = () => {
 		ctx.fill();
 	}
 
+	const determineLineWidth = () => {
+		if (tool === 'eraser') return eraserLineWidth;
+		return lineWidth
+	}
+
 	const renderCanvas = (ctx) => {
 
 		ctx.clearRect(0, 0, window.width, window.height)
 
 		const lines = linesRef.current
-		for (const {color, points} of lines) {
+		for (const {color, points, lineWidth} of lines) {
 
 			if (points.length === 0) {
 				continue
@@ -86,6 +94,7 @@ const DrawScreen = () => {
 				const start = points[0]
 
 				ctx.strokeStyle = color;
+				ctx.lineWidth = lineWidth;
 
 				ctx.beginPath();
 				ctx.moveTo(start[0], start[1]);
@@ -105,14 +114,17 @@ const DrawScreen = () => {
 
 		const lines = linesRef.current
 
-		const points = lines[lines.length - 1].points
+		const line = lines[lines.length - 1]
+		const points = line.points
 
 		if (points.length < 1) return;
+
+		const color = (tool === 'eraser') ? '#FF000066' : penColor;
 
 		if (points.length === 1) {
 
 			const point = points[0]
-			drawDot(ctx, point[0], point[1], lineWidth, penColor)
+			drawDot(ctx, point[0], point[1], line.lineWidth, color)
 
 			return;
 		}
@@ -122,7 +134,8 @@ const DrawScreen = () => {
 		const from = (points.length === 1) ? points[i] : points[i - 1]
 		const to = points[i]
 
-		ctx.strokeStyle = penColor;
+		ctx.lineWidth = line.lineWidth
+		ctx.strokeStyle = color
 
 		ctx.beginPath();
 		ctx.moveTo(from[0], from[1]);
@@ -130,7 +143,7 @@ const DrawScreen = () => {
 		ctx.stroke();
 	}
 
-	const collapseLine = () => {
+	const analyzeLine = () => {
 		const lines = linesRef.current
 		const line = lines[lines.length - 1]
 
@@ -138,16 +151,30 @@ const DrawScreen = () => {
 
 		const newPoints = []
 
+		const first = points[0]
+		let minX = first[0], maxX = first[0]
+		let minY = first[1], maxY = first[1]
+
 		let last;
 		for (let i = 0; i < points.length; i++) {
 			const point = points[i]
 			if (i === 0 || point[0] !== last[0] || point[1] !== last[1]) {
 				newPoints.push(point)
+
+				minX = Math.max(minX, point[0])
+				minY = Math.max(minY, point[1])
+
+				maxX = Math.min(maxX, point[0])
+				maxY = Math.min(maxY, point[1])
 			}
 			last = point;
 		}
 
-		line.points = newPoints
+		lines[lines.length - 1] = {...line, ...{
+				points: newPoints,
+				type: (newPoints.length === 1) ? 'dot' : 'line',
+				minX, minY, maxX, maxY
+			}}
 	}
 
 	const addUndo = () => {
@@ -222,9 +249,15 @@ const DrawScreen = () => {
 
 
 	const handlePanResponderEnd = (event, gestureState) => {
-		drawingRef.current = false
+		if (drawingRef.current) {
+			drawingRef.current = false
+			analyzeLine()
 
-		collapseLine()
+			if (tool === 'eraser') {
+				linesRef.current = erase(linesRef.current)
+				renderCanvas(ctxRef.current)
+			}
+		}
 	};
 
 
@@ -247,7 +280,7 @@ const DrawScreen = () => {
 					<Canvas ref={canvasRef}/>
 				</View>
 
-				<LeftSideBar active={leftBarActive} setActive={setLeftBarActive}/>
+				<LeftSideBar active={leftBarActive} setActive={setLeftBarActive} tool={tool} setTool={setTool}/>
 				<RightSideBar active={rightBarActive} setActive={setRightBarActive} color={penColor} setColor={setPenColor}/>
 
 			</View>

@@ -14,6 +14,8 @@ const RightSideBar = ({active, setActive, color, setColor}) => { // TODO: try re
 	const colors = [
 		'black',
 		'white',
+		'gray',
+		'#444444',
 		'red',
 		'blue',
 		'green',
