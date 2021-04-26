@@ -14,7 +14,7 @@ const window = {
 	height: Dimensions.get('window').height
 }
 
-const DrawScreen = () => {
+const DrawScreen = ({navigation}) => {
 
 	const undosRef = React.useRef([])
 	const redosRef = React.useRef([])
@@ -280,7 +280,7 @@ const DrawScreen = () => {
 					<Canvas ref={canvasRef}/>
 				</View>
 
-				<LeftSideBar active={leftBarActive} setActive={setLeftBarActive} tool={tool} setTool={setTool}/>
+				<LeftSideBar active={leftBarActive} setActive={setLeftBarActive} tool={tool} setTool={setTool} toSettings={() => navigation.navigate('Settings')}/>
 				<RightSideBar active={rightBarActive} setActive={setRightBarActive} color={penColor} setColor={setPenColor}/>
 
 			</View>

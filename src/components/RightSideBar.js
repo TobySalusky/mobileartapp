@@ -47,9 +47,12 @@ const RightSideBar = ({active, setActive, color, setColor}) => { // TODO: try re
 export default RightSideBar
 
 const Swatch = ({selectedColor, color, setColor}) => {
+
+	const [theme] = React.useContext(ThemeContext)
+
 	return (
 		<View style={[styles.swatch, {width: 45, height: 45,
-			borderColor: (selectedColor === color) ? 'orange' : 'black', borderWidth: 2, backgroundColor: 'black',
+			borderColor: (selectedColor === color) ? theme.toolButtonActive : 'black', borderWidth: 2, backgroundColor: 'black',
 		}]}>
 			<TouchableHighlight
 				onPress={() => setColor(color)}>

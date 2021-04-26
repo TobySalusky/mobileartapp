@@ -8,7 +8,7 @@ export const lightTheme = {
 	sideBar: '#eaeaea',
 	sideBarBorder: 'gray',
 
-	toolButtonActive: 'orange',
+	toolButtonActive: 'red',
 
 	canvasBackground: 'white',
 
@@ -28,6 +28,12 @@ export const darkTheme = {
 	toolButtonActive: 'orange',
 
 	canvasBackground: 'lightgray',
+}
 
+export const otherTheme = (theme) => {
+	return (theme === lightTheme) ? darkTheme : lightTheme
+}
 
+export const isLightTheme = (theme) => {
+	return (theme === lightTheme)
 }

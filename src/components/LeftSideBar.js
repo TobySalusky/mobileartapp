@@ -7,7 +7,7 @@ const window = {
 	height: Dimensions.get('window').height
 }
 
-const LeftSideBar = ({active, setActive, tool, setTool}) => {
+const LeftSideBar = ({active, setActive, tool, setTool, toSettings}) => {
 
 	const [theme] = React.useContext(ThemeContext)
 
@@ -18,22 +18,31 @@ const LeftSideBar = ({active, setActive, tool, setTool}) => {
 
 	return (!active) ? null :
 			<View style={[styles.sideBar, {backgroundColor: theme.sideBar, borderColor: theme.sideBarBorder}]}>
-				<TouchableHighlight
-					onPress={() => setActive(false)}>
-					<Image
-						source={require('../../assets/deleteButton.png')}
-						style={[styles.closeButton, {tintColor: theme.bottomBarButton}]}
-					/>
-				</TouchableHighlight>
 
-				{tools.map(([image, thisTool], i) =>
-					<TouchableHighlight onPress={() => setTool(thisTool)} key={`tool-${i}`}>
+				<View style={{justifyContent: 'flex-start', alignItems: 'center', flexDirection: 'column'}}>
+					<TouchableHighlight onPress={() => setActive(false)} style={{marginTop: 10}}>
 						<Image
-							source={image}
-							style={[styles.closeButton, {tintColor: (tool === thisTool) ? theme.toolButtonActive : theme.bottomBarButton}]}
+							source={require('../../assets/deleteButton.png')}
+							style={[styles.button, {tintColor: theme.bottomBarButton}]}
 						/>
 					</TouchableHighlight>
-				)}
+
+					{tools.map(([image, thisTool], i) =>
+						<TouchableHighlight onPress={() => setTool(thisTool)} key={`tool-${i}`} style={{marginTop: 10}}>
+							<Image
+								source={image}
+								style={[styles.button, {tintColor: (tool === thisTool) ? theme.toolButtonActive : theme.bottomBarButton}]}
+							/>
+						</TouchableHighlight>
+					)}
+				</View>
+
+				<TouchableHighlight onPress={toSettings} style={{marginBottom: 10}}>
+					<Image
+						source={require('../../assets/settings.png')}
+						style={[styles.button, {tintColor: theme.bottomBarButton}]}
+					/>
+				</TouchableHighlight>
 			</View>;
 
 }
@@ -47,18 +56,11 @@ const styles = StyleSheet.create({
 		width: window.width * 0.15,
 		borderRightWidth: 2,
 
-		justifyContent: 'flex-start',
+		justifyContent: 'space-between',
 		alignItems: 'center',
 		flexDirection: 'column',
 	},
-	closeButton: {
-		width: 45,
-		height: 45,
-		resizeMode: 'contain',
-		marginTop: 10,
-	},
-
-	toolButton: {
+	button: {
 		width: 45,
 		height: 45,
 		resizeMode: 'contain',
