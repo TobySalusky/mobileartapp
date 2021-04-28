@@ -1,6 +1,9 @@
 export const light = {
 	name: 'Light',
 
+	statusBarBackground: 'lightgray',
+	statusBarStyle: 'dark-content',
+
 	screenBack: 'lightgray',
 	text: 'black',
 
@@ -21,6 +24,9 @@ export const light = {
 export const dark = {
 	name: 'Dark',
 
+	statusBarBackground: '#444444',
+	statusBarStyle: 'light-content',
+
 	screenBack: '#444444',
 	text: 'lightgray',
 
@@ -40,6 +46,9 @@ export const dark = {
 
 export const dracula = {
 	name: 'Dracula',
+
+	statusBarBackground: 'black',
+	statusBarStyle: 'light-content',
 
 	screenBack: '#44475a',
 	text: '#bd93f9',

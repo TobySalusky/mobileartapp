@@ -1,6 +1,6 @@
 import "react-native-gesture-handler";
 import React from "react";
-import { Dimensions, PanResponder, StyleSheet, Text, View, SafeAreaView } from "react-native";
+import { Dimensions, PanResponder, StyleSheet, Text, View, SafeAreaView, StatusBar } from "react-native";
 import Canvas from "react-native-canvas";
 import UndoRedoBar from "../components/UndoRedoBar";
 import { ThemeContext } from "../context/ThemeContext";
@@ -280,8 +280,8 @@ const DrawScreen = ({navigation}) => {
 	} );
 
 	return (
-		<SafeAreaView style={styles.container}>
 
+		<View style={[styles.container, {borderTopWidth:2, borderTopColor: theme.sideBarBorder}]}>
 			<View style={{flex: 1, flexDirection: 'row'}}>
 
 				<View style={{flex:1, backgroundColor: theme.canvasBackground}} {...panResponderRef.panHandlers}>
@@ -294,8 +294,8 @@ const DrawScreen = ({navigation}) => {
 			</View>
 
 			<UndoRedoBar undo={undo} clearCanvas={clearCanvas} redo={redo}/>
+		</View>
 
-		</SafeAreaView>
 	);
 }
 export default DrawScreen;
