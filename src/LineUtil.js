@@ -62,6 +62,12 @@ export function pDistance([x, y], [x1, y1], [x2, y2]) {
     return Math.sqrt(dx * dx + dy * dy);
 }
 
+export function lineSegmentIntersect([p1, p2], [p3, p4]) {
+    return lineIntersect(p1, p2, p3, p4)
+}
+
+// TODO: add ray collision
+
 export function linesIntersect(line1, line2) {
 
     if (line1.type === 'dot' || line2.type === 'dot') return false;
@@ -94,6 +100,32 @@ export function lineTouchesDot(dotLine, line) {
     return false;
 }
 
+export function pointInPoly(point, polyLine) {
+
+    const leftLine = [point, [polyLine.minX - 10, point[1]]]
+    const rightLine = [point, [polyLine.maxX + 10, point[1]]]
+
+    let left = 0, right = 0
+
+    const points = polyLine.points
+    for (let i = 0; i < points.length; i++) {
+        const line = [points[i], (i === points.length - 1) ? points[0] : points[i+1]]
+
+        if (lineSegmentIntersect(line, leftLine)) left++
+        if (lineSegmentIntersect(line, rightLine)) right++
+    }
+
+    return (left % 2 !== 0 || right % 2 !== 0)
+}
+
+export function lineInPoly(line, polyLine) {
+    const points = line.points
+    for (const point of points) {
+        if (!pointInPoly(point, polyLine)) return false
+    }
+    return true
+}
+
 export function erase(lines) {
 
     lines = [...lines]
@@ -109,6 +141,26 @@ export function erase(lines) {
         if (line.type === 'dot' && lineTouchesDot(line, eraseLine)) {
             lines.splice(i, 1)
         } else if (linesIntersect(eraseLine, line)) {
+            lines.splice(i, 1)
+        }
+    }
+
+    return lines
+}
+
+export function eraseInPoly(lines) {
+
+    lines = [...lines]
+
+    const polyLine = lines[lines.length - 1]
+    lines.splice(lines.length - 1, 1)
+
+    if (polyLine.points.length < 3) return lines
+
+    for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i]
+
+        if (lineInPoly(line, polyLine)) {
             lines.splice(i, 1)
         }
     }
