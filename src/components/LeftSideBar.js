@@ -14,7 +14,7 @@ const LeftSideBar = ({active, setActive, tool, setTool, toSettings}) => {
 	const tools = [
 		[require('../../assets/penTool.png'), 'pen'],
 		[require('../../assets/eraserTool.png'), 'eraser'],
-		[require('../../assets/eraserTool.png'), 'loop'],
+		[require('../../assets/circleSelect.png'), 'loop'],
 	]
 
 	return (!active) ? null :
