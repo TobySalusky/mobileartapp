@@ -6,7 +6,7 @@ import UndoRedoBar from "../components/UndoRedoBar";
 import { ThemeContext } from "../context/ThemeContext";
 import LeftSideBar from "../components/LeftSideBar";
 import RightSideBar from "../components/RightSideBar";
-import {erase} from "../LineUtil";
+import {erase, eraseInPoly} from "../LineUtil";
 
 
 const window = {
@@ -72,6 +72,7 @@ const DrawScreen = ({navigation}) => {
 
 	const determineLineWidth = () => {
 		if (tool === 'eraser') return eraserLineWidth;
+		if (tool === 'loop') return 5;
 		return lineWidth
 	}
 
@@ -119,7 +120,7 @@ const DrawScreen = ({navigation}) => {
 
 		if (points.length < 1) return;
 
-		const color = (tool === 'eraser') ? '#FF000066' : penColor;
+		const color = (tool === 'eraser' || tool === 'loop') ? '#FF000066' : penColor;
 
 		if (points.length === 1) {
 
@@ -158,14 +159,16 @@ const DrawScreen = ({navigation}) => {
 		let last;
 		for (let i = 0; i < points.length; i++) {
 			const point = points[i]
+
+			minX = Math.min(minX, point[0])
+			minY = Math.min(minY, point[1])
+
+			maxX = Math.max(maxX, point[0])
+			maxY = Math.max(maxY, point[1])
+
 			if (i === 0 || point[0] !== last[0] || point[1] !== last[1]) {
 				newPoints.push(point)
 
-				minX = Math.max(minX, point[0])
-				minY = Math.max(minY, point[1])
-
-				maxX = Math.min(maxX, point[0])
-				maxY = Math.min(maxY, point[1])
 			}
 			last = point;
 		}
@@ -255,6 +258,11 @@ const DrawScreen = ({navigation}) => {
 
 			if (tool === 'eraser') {
 				linesRef.current = erase(linesRef.current)
+				renderCanvas(ctxRef.current)
+			}
+
+			if (tool === 'loop') {
+				linesRef.current = eraseInPoly(linesRef.current)
 				renderCanvas(ctxRef.current)
 			}
 		}
