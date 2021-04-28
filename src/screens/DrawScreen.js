@@ -32,7 +32,7 @@ const DrawScreen = ({navigation}) => {
 	const [theme] = React.useContext(ThemeContext)
 	const [leftBarActive, setLeftBarActive] = React.useState(false)
 	const [rightBarActive, setRightBarActive] = React.useState(false)
-	const sideTabOpenBuffer = 15
+	const sideTabOpenBuffer = 25
 
 	const gesturePoint = (gestureState) => {
 		return [gestureState.x0 + gestureState.dx, gestureState.y0 + gestureState.dy]

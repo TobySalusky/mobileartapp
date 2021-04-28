@@ -1,10 +1,10 @@
 import React from "react";
-import {lightTheme, darkTheme} from "../Themes";
+import * as Themes from "../Themes";
 
 export const ThemeContext = React.createContext();
 
 export const ThemeProvider = (props) => {
-    const [theme, setTheme] = React.useState(darkTheme)
+    const [theme, setTheme] = React.useState(Themes.dracula)
 
     return <ThemeContext.Provider value={[theme, setTheme]}>{props.children}</ThemeContext.Provider>;
 }

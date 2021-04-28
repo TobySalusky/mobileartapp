@@ -4,7 +4,7 @@ import GlobalProvider from "./src/context/GlobalProvider";
 import DrawScreen from "./src/screens/DrawScreen";
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import SettingsScreen from "./src/screens/SettingsScreen";
+import ThemeScreen from "./src/screens/ThemeScreen";
 
 
 const Stack = createStackNavigator();
@@ -17,7 +17,7 @@ const App = () => {
               <Stack.Navigator initialRouteName="Draw" screenOptions={{headerShown: false}}>
 
                   <Stack.Screen name="Draw" component={DrawScreen} />
-                  <Stack.Screen name="Settings" component={SettingsScreen} />
+                  <Stack.Screen name="Settings" component={ThemeScreen} />
 
               </Stack.Navigator>
           </NavigationContainer>

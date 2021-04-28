@@ -1,4 +1,7 @@
-export const lightTheme = {
+export const light = {
+	name: 'Light',
+
+	screenBack: 'lightgray',
 	text: 'black',
 
 	bottomBar: 'lightgray',
@@ -9,13 +12,16 @@ export const lightTheme = {
 	sideBarBorder: 'gray',
 
 	toolButtonActive: 'red',
+	toggleOn: 'green',
+	toggleOff: 'grey',
 
 	canvasBackground: 'white',
-
-
 }
 
-export const darkTheme = {
+export const dark = {
+	name: 'Dark',
+
+	screenBack: '#444444',
 	text: 'lightgray',
 
 	bottomBar: '#444444',
@@ -26,14 +32,28 @@ export const darkTheme = {
 	sideBarBorder: '#111111',
 
 	toolButtonActive: 'orange',
+	toggleOn: 'orange',
+	toggleOff: 'grey',
 
 	canvasBackground: 'lightgray',
 }
 
-export const otherTheme = (theme) => {
-	return (theme === lightTheme) ? darkTheme : lightTheme
-}
+export const dracula = {
+	name: 'Dracula',
 
-export const isLightTheme = (theme) => {
-	return (theme === lightTheme)
+	screenBack: '#44475a',
+	text: '#bd93f9',
+
+	bottomBar: '#282a36',
+	bottomBarBorder: 'black',
+	bottomBarButton: '#bd93f9',
+
+	sideBar: '#44475a',
+	sideBarBorder: '#111111',
+
+	toolButtonActive: '#ff79c6',
+	toggleOn: '#ff79c6',
+	toggleOff: '#78788c',
+
+	canvasBackground: '#a4a4c1',
 }
