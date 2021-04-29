@@ -1,6 +1,6 @@
 import "react-native-gesture-handler";
 import React from "react";
-import { Dimensions, PanResponder, StyleSheet, Text, View, SafeAreaView, StatusBar } from "react-native";
+import { Dimensions, PanResponder, StyleSheet, Text, View, SafeAreaView, Image, StatusBar } from "react-native";
 import Canvas from "react-native-canvas";
 import UndoRedoBar from "../components/UndoRedoBar";
 import { ThemeContext } from "../context/ThemeContext";
@@ -185,12 +185,29 @@ const DrawScreen = ({navigation}) => {
 		addUndoRaw()
 	}
 
+	const copyCanvasState = () => {
+		const ctx = ctxRef.current
+
+		//let imageData = ctx.getImageData(60, 60, 200, 100);
+		//ctx.putImageData(imageData, 150, 10);
+
+		return {
+			lines: [...linesRef.current],
+			//imageData: ctxRef.current.getImageData(0, 0, window.width, window.height),
+		}
+	}
+
+	const useCanvasState = (state) => {
+		linesRef.current = state.lines;
+		//ctxRef.current.putImageData(state.imageData, 0, 0) // TODO: DEEP-COPY!!
+	}
+
 	const addUndoRaw = () => {
-		undosRef.current.push([...linesRef.current]) // TODO: DEEP-COPY!!
+		undosRef.current.push(copyCanvasState())
 	}
 
 	const addRedo = () => {
-		redosRef.current.push([...linesRef.current]) // TODO: DEEP-COPY!!
+		redosRef.current.push(copyCanvasState())
 	}
 
 	const undo = () => {
@@ -199,19 +216,19 @@ const DrawScreen = ({navigation}) => {
 		if (undos.length > 0) {
 			addRedo()
 
-			linesRef.current = undos[undos.length - 1]
+            useCanvasState(undos[undos.length - 1])
 			undos.splice(undos.length - 1, 1)
 			renderCanvas(ctxRef.current)
 		}
 	}
 
-	const redo = () => {
+	const redo = async () => {
 
 		const redos = redosRef.current
 		if (redos.length > 0) {
 			addUndoRaw()
 
-			linesRef.current = redos[redos.length - 1]
+			useCanvasState(redos[redos.length - 1])
 			redos.splice(redos.length - 1, 1)
 			renderCanvas(ctxRef.current)
 		}
