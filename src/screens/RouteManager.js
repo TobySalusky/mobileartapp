@@ -5,10 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ThemeScreen from "./ThemeScreen";
 import {ThemeContext} from "../context/ThemeContext";
 import {SafeAreaView, StatusBar, StyleSheet, View} from "react-native";
-import Canvas from "react-native-canvas";
-import LeftSideBar from "../components/LeftSideBar";
-import RightSideBar from "../components/RightSideBar";
-import UndoRedoBar from "../components/UndoRedoBar";
+import SaveScreen from "./SaveScreen";
 
 const Stack = createStackNavigator();
 
@@ -25,6 +22,7 @@ const RouteManager = () => {
                     <Stack.Navigator initialRouteName="Draw" screenOptions={{headerShown: false}}>
 
                         <Stack.Screen name="Draw" component={DrawScreen} />
+                        <Stack.Screen name="Saves" component={SaveScreen} />
                         <Stack.Screen name="Settings" component={ThemeScreen} />
 
                     </Stack.Navigator>

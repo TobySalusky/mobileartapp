@@ -6,7 +6,7 @@ import UndoRedoBar from "../components/UndoRedoBar";
 import { ThemeContext } from "../context/ThemeContext";
 import LeftSideBar from "../components/LeftSideBar";
 import RightSideBar from "../components/RightSideBar";
-import {erase, eraseInPoly} from "../LineUtil";
+import {erase, eraseInPoly, exceptLast, lastLine, smartLineSnapEnds} from "../LineUtil";
 
 
 const window = {
@@ -61,6 +61,8 @@ const DrawScreen = ({navigation}) => {
 		ctx.lineCap = 'round'
 
 		ctxRef.current = ctx
+
+		renderCanvas(ctx)
 	}, [])
 
 	const drawDot = (ctx, x, y, diameter, color) => {
@@ -186,20 +188,13 @@ const DrawScreen = ({navigation}) => {
 	}
 
 	const copyCanvasState = () => {
-		const ctx = ctxRef.current
-
-		//let imageData = ctx.getImageData(60, 60, 200, 100);
-		//ctx.putImageData(imageData, 150, 10);
-
 		return {
 			lines: [...linesRef.current],
-			//imageData: ctxRef.current.getImageData(0, 0, window.width, window.height),
 		}
 	}
 
 	const useCanvasState = (state) => {
 		linesRef.current = state.lines;
-		//ctxRef.current.putImageData(state.imageData, 0, 0) // TODO: DEEP-COPY!!
 	}
 
 	const addUndoRaw = () => {
@@ -222,7 +217,7 @@ const DrawScreen = ({navigation}) => {
 		}
 	}
 
-	const redo = async () => {
+	const redo = () => {
 
 		const redos = redosRef.current
 		if (redos.length > 0) {
@@ -267,22 +262,36 @@ const DrawScreen = ({navigation}) => {
 		}
 	};
 
-
 	const handlePanResponderEnd = (event, gestureState) => {
 		if (drawingRef.current) {
 			drawingRef.current = false
 			analyzeLine()
 
-			if (tool === 'eraser') {
-				linesRef.current = erase(linesRef.current)
-				renderCanvas(ctxRef.current)
-			}
+			const lines = linesRef.current
+			const ctx = ctxRef.current
 
-			if (tool === 'loop') {
-				linesRef.current = eraseInPoly(linesRef.current)
-				renderCanvas(ctxRef.current)
+			switch (tool) {
+				case 'eraser':
+					const eraseLine = lastLine(lines)
+					linesRef.current = erase(exceptLast(lines), eraseLine)
+					renderCanvas(ctx)
+					break;
+				case 'loop':
+					const erasePoly = lastLine(lines)
+					linesRef.current = eraseInPoly(exceptLast(lines), erasePoly)
+					renderCanvas(ctx)
+					break;
+				case 'pen':
+					const snapped = smartLineSnapEnds(exceptLast(lines), lastLine(lines))
+					if (snapped) renderCanvas(ctx)
+
+					break;
 			}
 		}
+
+
+		//const ctx = ctxRef.current
+		//ctx.getImageData(0, 0, 100, 100).then(res => ctx.putImageData(res, 100, 100)).catch(e => console.log('rip'))
 	};
 
 
@@ -305,7 +314,8 @@ const DrawScreen = ({navigation}) => {
 					<Canvas ref={canvasRef}/>
 				</View>
 
-				<LeftSideBar active={leftBarActive} setActive={setLeftBarActive} tool={tool} setTool={setTool} toSettings={() => navigation.navigate('Settings')}/>
+				<LeftSideBar active={leftBarActive} setActive={setLeftBarActive} tool={tool} setTool={setTool}
+							 toSettings={() => navigation.navigate('Settings')} toSaves={() => navigation.navigate('Saves')}/>
 				<RightSideBar active={rightBarActive} setActive={setRightBarActive} color={penColor} setColor={setPenColor}/>
 
 			</View>

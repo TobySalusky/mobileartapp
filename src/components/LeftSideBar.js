@@ -7,7 +7,7 @@ const window = {
 	height: Dimensions.get('window').height
 }
 
-const LeftSideBar = ({active, setActive, tool, setTool, toSettings}) => {
+const LeftSideBar = ({active, setActive, tool, setTool, toSettings, toSaves}) => {
 
 	const [theme] = React.useContext(ThemeContext)
 
@@ -38,12 +38,21 @@ const LeftSideBar = ({active, setActive, tool, setTool, toSettings}) => {
 					)}
 				</View>
 
-				<TouchableHighlight onPress={toSettings} style={{marginBottom: 10}}>
-					<Image
-						source={require('../../assets/settings.png')}
-						style={[styles.button, {tintColor: theme.bottomBarButton}]}
-					/>
-				</TouchableHighlight>
+				<View>
+					<TouchableHighlight onPress={toSaves} style={{marginBottom: 10}}>
+						<Image
+							source={require('../../assets/saves.png')}
+							style={[styles.button, {tintColor: theme.bottomBarButton}]}
+						/>
+					</TouchableHighlight>
+
+					<TouchableHighlight onPress={toSettings} style={{marginBottom: 10}}>
+						<Image
+							source={require('../../assets/settings.png')}
+							style={[styles.button, {tintColor: theme.bottomBarButton}]}
+						/>
+					</TouchableHighlight>
+				</View>
 			</View>;
 
 }

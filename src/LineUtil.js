@@ -72,7 +72,7 @@ export function linesIntersect(line1, line2) {
 
     if (line1.type === 'dot' || line2.type === 'dot') return false;
 
-    if (!(line1.minX > line2.maxX || line1.maxX < line2.minX || line1.maxY < line2.minY || line1.minY > line2.maxY)) return true; // I'm confused
+    if (line1.minX > line2.maxX || line1.maxX < line2.minX || line1.maxY < line2.minY || line1.minY > line2.maxY) return false;
 
     const points1 = line1.points;
     const points2 = line2.points;
@@ -126,20 +126,15 @@ export function lineInPoly(line, polyLine) {
     return true
 }
 
-export function erase(lines) {
-
-    lines = [...lines]
-
-    const eraseLine = lines[lines.length - 1]
-    lines.splice(lines.length - 1, 1)
+export function erase(lines, eraseLine) {
 
     if (eraseLine.type === 'dot') return lines
 
     for (let i = lines.length - 1; i >= 0; i--) {
         const line = lines[i]
 
-        if (line.type === 'dot' && lineTouchesDot(line, eraseLine)) {
-            lines.splice(i, 1)
+        if (line.type === 'dot') {
+            if (lineTouchesDot(line, eraseLine)) lines.splice(i, 1)
         } else if (linesIntersect(eraseLine, line)) {
             lines.splice(i, 1)
         }
@@ -148,22 +143,63 @@ export function erase(lines) {
     return lines
 }
 
-export function eraseInPoly(lines) {
+export function eraseInPoly(lines, erasePoly) {
 
-    lines = [...lines]
 
-    const polyLine = lines[lines.length - 1]
-    lines.splice(lines.length - 1, 1)
-
-    if (polyLine.points.length < 3) return lines
+    if (erasePoly.points.length < 3) return lines
 
     for (let i = lines.length - 1; i >= 0; i--) {
         const line = lines[i]
 
-        if (lineInPoly(line, polyLine)) {
+        if (lineInPoly(line, erasePoly)) {
             lines.splice(i, 1)
         }
     }
 
     return lines
+}
+
+export function dist([x1, y1], [x2, y2]) {
+    return Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2))
+}
+
+export function smartLineSnapEnds(lines, line) {
+
+    const validLines = lines.filter(line => line.type === 'line')
+
+    if (line.type === 'dot' || validLines.length === 0) return
+
+    let change = false
+
+    for (const point of [line.points[0], line.points[line.points.length - 1]]) {
+        let minPoint = validLines[0].points[0]
+        let minDist = dist(point, minPoint)
+
+        for (const line of validLines) {
+            const linePoints = line.points
+            for (const snapPoint of [linePoints[0], linePoints[linePoints.length - 1]]) {
+                const d = dist(point, snapPoint)
+                if (d < minDist) {
+                    minDist = d
+                    minPoint = snapPoint
+                }
+            }
+        }
+
+        if (minDist < 30) {
+            point[0] = minPoint[0]
+            point[1] = minPoint[1]
+            change = true
+        }
+    }
+
+    return change
+}
+
+export function lastLine(lines) {
+    return lines[lines.length - 1]
+}
+
+export function exceptLast(lines) {
+    return lines.slice(0, lines.length - 1)
 }
