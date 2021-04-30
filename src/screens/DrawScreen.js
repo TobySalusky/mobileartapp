@@ -284,7 +284,6 @@ const DrawScreen = ({navigation}) => {
 				case 'pen':
 					const snapped = smartLineSnapEnds(exceptLast(lines), lastLine(lines))
 					if (snapped) renderCanvas(ctx)
-
 					break;
 			}
 		}
