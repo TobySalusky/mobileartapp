@@ -1,14 +1,17 @@
-import React from "react";
-import { ThemeProvider } from "./ThemeContext";
+import React from 'react';
+import { ThemeProvider } from './ThemeContext';
+import { DataURLProvider } from './DataURLContext';
 
 
 const GlobalProvider = ({children}) => {
-
+	
 	return (
-		<ThemeProvider>
-			{children}
-		</ThemeProvider>
+		<DataURLProvider>
+			<ThemeProvider>
+				{children}
+			</ThemeProvider>
+		</DataURLProvider>
 	);
-
+	
 }
 export default GlobalProvider
