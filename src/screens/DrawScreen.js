@@ -92,7 +92,7 @@ const DrawScreen = ({navigation}) => {
 	const determineLineWidth = () => {
 		if (tool === 'eraser') return eraserLineWidth;
 		if (tool === 'loop') return 5;
-		if (tool === 'line') return 7;
+		if (tool === 'line' && rigging) return 7;
 		return lineWidth;
 	};
 	
@@ -103,8 +103,6 @@ const DrawScreen = ({navigation}) => {
 	
 	const renderCanvas = (ctx) => {
 		ctx.clearRect(0, 0, window.width, window.height);
-		
-		ctx.fillRect(0, 0, 100, 100)
 		
 		const lines = linesRef.current;
 		for (const {color, points, lineWidth, svgPath} of lines) {
@@ -204,7 +202,7 @@ const DrawScreen = ({navigation}) => {
 	const genSvgPath = (points) => {
 		let svgPath = 'M '
 		let i = 0
-		for ([x, y] of points) {
+		for (const [x, y] of points) {
 			if (i !== 0) svgPath += 'L '
 			svgPath += `${x} ${y} `
 			i++
@@ -390,6 +388,8 @@ const DrawScreen = ({navigation}) => {
 					toSettings={() => navigation.navigate('Settings')} toSaves={onSaveScreenPush}
 					smart={smart} setSmart={setSmart}
 					rigging={rigging} setRigging={onSetRigging}
+					lineWidth={lineWidth} setLineWidth={setLineWidth}
+					eraserWidth={eraserLineWidth} setEraserWidth={setEraserLineWidth}
 				/>
 				<RightSideBar
 					active={rightBarActive} setActive={setRightBarActive}

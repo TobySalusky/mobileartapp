@@ -165,11 +165,14 @@ export function smartLineSnapEnds(lines, line) {
 	
 	const validLines = lines.filter(line => line.type === 'line')
 	
-	if (line.type === 'dot' || validLines.length === 0) return
+	if (line.type === 'dot' || validLines.length === 0) return false
+	
+	let p1 = line.points[0], p2 = line.points[line.points.length - 1]
+	
+	const pD = dist(p1, p2)
 	
 	let change = false
-	
-	for (const point of [line.points[0], line.points[line.points.length - 1]]) {
+	for (const point of [p1, p2]) {
 		let minPoint = validLines[0].points[0]
 		let minDist = dist(point, minPoint)
 		
@@ -185,13 +188,47 @@ export function smartLineSnapEnds(lines, line) {
 		}
 		
 		if (minDist < 30) {
+			/*if (point === p2 && pD < 30 && pD < minDist && pD < 0.5 * totalLineLength(line)) {
+				
+				p1[0] = p2[0] // TODO: fix, this is wrong
+				p2[1] = p2[1]
+				change = true
+				
+			} else {*/
 			point[0] = minPoint[0]
 			point[1] = minPoint[1]
 			change = true
+			//}
 		}
 	}
 	
 	return change
+}
+
+export function snipIntersections(lines, line) {
+	
+	const validLines = lines.filter(line => line.type === 'line')
+	
+	if (line.type === 'dot' || validLines.length === 0) return false
+	
+	let change = false
+	
+	const length = totalLineLength(line)
+	
+	return change
+}
+
+export function zigZagFill(lines, pos) {
+	// TODO:
+}
+
+export function totalLineLength({points}) {
+	
+	let total = 0
+	for (let i = 1; i < points.length; i++) {
+		total += dist(points[i - 1], points[i])
+	}
+	return total
 }
 
 export function lastLine(lines) {

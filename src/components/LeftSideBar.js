@@ -1,13 +1,18 @@
 import React from 'react';
 import { Dimensions, Image, StyleSheet, TouchableHighlight, View } from 'react-native';
 import { ThemeContext } from '../context/ThemeContext';
+import Slider from "@react-native-community/slider";
+
 
 const window = {
 	width: Dimensions.get('window').width,
 	height: Dimensions.get('window').height
 }
 
-const LeftSideBar = ({active, setActive, tool, setTool, toSettings, toSaves, smart, setSmart, rigging, setRigging}) => {
+const LeftSideBar = ({
+	                     active, setActive, tool, setTool, toSettings, toSaves, smart, setSmart, rigging, setRigging,
+	                     lineWidth, setLineWidth, eraserWidth, setEraserWidth
+                     }) => {
 	
 	const [theme] = React.useContext(ThemeContext)
 	
@@ -53,6 +58,14 @@ const LeftSideBar = ({active, setActive, tool, setTool, toSettings, toSaves, sma
 				)}
 			</View>
 			
+			{!(tool === 'pen' || tool === 'line') ? null :
+				<SizeSlider width={lineWidth} setWidth={setLineWidth} max={15}/>
+			}
+			
+			{!(tool === 'eraser') ? null :
+				<SizeSlider width={eraserWidth} setWidth={setEraserWidth} max={20}/>
+			}
+			
 			<View>
 				<TouchableHighlight onPress={toSaves} style={{marginBottom: 10}}>
 					<Image
@@ -72,6 +85,39 @@ const LeftSideBar = ({active, setActive, tool, setTool, toSettings, toSaves, sma
 	
 }
 export default LeftSideBar
+
+
+const SizeSlider = ({width, setWidth, max = 10}) => {
+	
+	const [theme] = React.useContext(ThemeContext)
+	
+	const temp = React.useRef(width)
+	
+	React.useEffect(() => {
+		temp.current = width;
+	}, [width])
+	
+	
+	return (
+		<View style={{transform: [{rotate: "-90deg"}]}}>
+			<Slider style={{width: 100, height: 20}} value={temp.current} onValueChange={val => temp.current = val}
+			        onSlidingComplete={val => setWidth(val)} minimumValue={1} maximumValue={max}
+			        thumbTintColor={theme.sliderHead} minimumTrackTintColor={theme.sliderActive}
+			        maximumTrackTintColor={theme.sliderInactive}/>
+		</View>
+		/*<View style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start'}}>
+			<View style={{transform: [{rotate: "-90deg"}]}}>
+				<Slider style={{width: 100, height: 20}} value={temp.current} onValueChange={val => temp.current = val}
+				        onSlidingComplete={val => setWidth(val)} minimumValue={0} maximumValue={max}
+				        thumbTintColor={theme.sliderHead} minimumTrackTintColor={theme.sliderActive}
+				        maximumTrackTintColor={theme.sliderInactive}/>
+			</View>
+			<Text>
+				{temp.current.toFixed(1)}
+			</Text>
+		</View>*/
+	)
+}
 
 const styles = StyleSheet.create({
 	sideBar: {
