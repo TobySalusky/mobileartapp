@@ -84,6 +84,29 @@ export function linesIntersect(line1, line2) {
 	return false;
 }
 
+export function segmentLineFirstIntersection(segment, line) {
+	
+	if (line.type === 'dot') return undefined;
+	
+	const segMinX = Math.min(segment[0][0], segment[1][0])
+	const segMaxX = Math.max(segment[0][0], segment[1][0])
+	const segMinY = Math.min(segment[0][1], segment[1][1])
+	const segMaxY = Math.max(segment[0][1], segment[1][1])
+	
+	if (segMinX > line.maxX || segMaxX < line.minX || segMaxY < line.minY || segMinY > line.maxY) return undefined;
+	
+	const points = line.points;
+	
+	for (let i = 1; i < points.length; i++) {
+		
+		const intersection = lineIntersect(segment[0], segment[1], points[i - 1], points[i])
+		
+		if (intersection) return intersection;
+	}
+	
+	return false;
+}
+
 export function lineTouchesDot(dotLine, line) {
 	
 	const min = (dotLine.lineWidth + line.lineWidth) / 2
@@ -169,8 +192,6 @@ export function smartLineSnapEnds(lines, line) {
 	
 	let p1 = line.points[0], p2 = line.points[line.points.length - 1]
 	
-	const pD = dist(p1, p2)
-	
 	let change = false
 	for (const point of [p1, p2]) {
 		let minPoint = validLines[0].points[0]
@@ -188,21 +209,36 @@ export function smartLineSnapEnds(lines, line) {
 		}
 		
 		if (minDist < 30) {
-			/*if (point === p2 && pD < 30 && pD < minDist && pD < 0.5 * totalLineLength(line)) {
-				
-				p1[0] = p2[0] // TODO: fix, this is wrong
-				p2[1] = p2[1]
-				change = true
-				
-			} else {*/
 			point[0] = minPoint[0]
 			point[1] = minPoint[1]
 			change = true
-			//}
 		}
 	}
 	
 	return change
+}
+
+export function smartSnapSelf(line) { // TODO: call analyze line when smart editing instead of just updateSVG!!!
+	
+	
+	if (line.type === 'dot') return false
+	
+	let p1 = line.points[0], p2 = line.points[line.points.length - 1]
+	
+	const pD = dist(p1, p2)
+	if (pD < 30) {
+		const avg = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
+		
+		p1[0] = avg[0]
+		p1[1] = avg[1]
+		
+		p2[0] = avg[0]
+		p2[1] = avg[1]
+		
+		return true
+	}
+	
+	return false
 }
 
 export function snipIntersections(lines, line) {
@@ -214,6 +250,43 @@ export function snipIntersections(lines, line) {
 	let change = false
 	
 	const length = totalLineLength(line)
+	
+	for (const [diff, init] of [[-1, line.points.length - 2], [1, 1]]) {
+		
+		let currLength = 0
+		
+		inner: for (let i = init; i < line.points.length && i >= 0; i += diff) {
+			const p1 = line.points[i - diff]
+			const p2 = line.points[i]
+			
+			const segment = [p1, p2]
+			
+			let intersection;
+			intersections: for (const thisLine of lines) {
+				intersection = segmentLineFirstIntersection(segment, thisLine)
+				if (intersection) break intersections; // TODO: imprecise, TODO: find nearest?
+			}
+			
+			if (intersection) {
+				
+				currLength += dist(p1, intersection)
+				
+				if (currLength < 30 && currLength <= length / 3) {
+					
+					for (let j = i - diff; j < line.points.length && j >= 0; j -= diff) {
+						line.points[j] = undefined
+					}
+					line.points = line.points.filter(p => p !== undefined)
+					line.points.splice(diff === 1 ? 0 : line.points.length, 0, intersection)
+					
+					change = true
+				}
+				continue inner;
+			}
+			
+			currLength += dist(p1, p2)
+		}
+	}
 	
 	return change
 }

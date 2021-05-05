@@ -28,8 +28,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",
-    "@react-navigation/native": "^5.9.4",
-    "prettier": "2.2.1"
+    "@react-navigation/native": "^5.9.4"
   },
   "private": true
 }

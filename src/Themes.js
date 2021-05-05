@@ -21,6 +21,10 @@ export const light = {
 	optionToggle: 'green',
 
 	canvasBackground: 'white',
+
+	sliderHead: 'white',
+	sliderActive: 'green',
+	sliderInactive: 'darkgray',
 }
 
 export const dark = {
@@ -46,6 +50,10 @@ export const dark = {
 	optionToggle: 'yellow',
 
 	canvasBackground: 'lightgray',
+
+	sliderHead: 'white',
+	sliderActive: 'orange',
+	sliderInactive: 'darkgray',
 }
 
 export const dracula = {

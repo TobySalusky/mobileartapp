@@ -6,7 +6,15 @@ import UndoRedoBar from '../components/UndoRedoBar';
 import { ThemeContext } from '../context/ThemeContext';
 import LeftSideBar from '../components/LeftSideBar';
 import RightSideBar from '../components/RightSideBar';
-import { erase, eraseInPoly, exceptLast, lastLine, smartLineSnapEnds, } from '../LineUtil';
+import {
+	erase,
+	eraseInPoly,
+	exceptLast,
+	lastLine,
+	smartLineSnapEnds,
+	smartSnapSelf,
+	snipIntersections,
+} from '../LineUtil';
 import { DataURLContext } from '../context/DataURLContext';
 
 const window = {
@@ -34,6 +42,12 @@ const DrawScreen = ({navigation}) => {
 	const sideTabOpenBuffer = 25;
 	
 	const [smart, setSmart] = React.useState(true)
+	const [smartSettings, setSmartSettings] = React.useState({
+		snapEnds: true,
+		snapSelf: true,
+		assumeSnip: true,
+	})
+	
 	const [rigging, setRigging] = React.useState(false)
 	const prevTool = React.useRef('invalidTool')
 	
@@ -311,26 +325,52 @@ const DrawScreen = ({navigation}) => {
 			const ctx = ctxRef.current;
 			
 			switch (tool) {
-				case 'eraser':
+				case 'eraser': {
 					const eraseLine = lastLine(lines);
 					linesRef.current = erase(exceptLast(lines), eraseLine);
 					renderCanvas(ctx);
 					break;
-				case 'loop':
+				}
+				case 'loop': {
 					const erasePoly = lastLine(lines);
 					linesRef.current = eraseInPoly(exceptLast(lines), erasePoly);
 					renderCanvas(ctx);
 					break;
-				case 'pen':
-				case 'line':
-					if (!smart) break;
-					
-					const snapped = smartLineSnapEnds(exceptLast(lines), lastLine(lines));
-					if (snapped) {
-						updateSvg(lastLine(lines))
-						renderCanvas(ctx);
+				}
+				case ('pen' || 'line'): {
+					if (smart) {
+						let forceRender = false
+						
+						if (smartSettings.assumeSnip) {
+							const snipped = snipIntersections(exceptLast(lines), lastLine(lines));
+							if (snipped) {
+								updateSvg(lastLine(lines))
+								forceRender = true
+							}
+						}
+						
+						if (smartSettings.snapEnds && !forceRender) {
+							const snapped = smartLineSnapEnds(exceptLast(lines), lastLine(lines));
+							if (snapped) {
+								updateSvg(lastLine(lines))
+								forceRender = true
+							}
+						}
+						
+						if (smartSettings.snapSelf && !forceRender) {
+							const snapped = smartSnapSelf(lastLine(lines));
+							if (snapped) {
+								updateSvg(lastLine(lines))
+								forceRender = true
+							}
+						}
+						
+						if (forceRender) renderCanvas(ctx)
 					}
 					break;
+				}
+				
+				
 			}
 		}
 		
