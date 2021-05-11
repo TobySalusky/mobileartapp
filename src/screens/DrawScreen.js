@@ -348,7 +348,9 @@ const DrawScreen = ({navigation}) => {
 					renderCanvas(ctx);
 					break;
 				}
-				case ('pen' || 'line'): {
+				case 'pen':
+				case 'line': {
+					console.log(tool)
 					if (smart) {
 						let forceRender = false
 						
@@ -444,7 +446,7 @@ const DrawScreen = ({navigation}) => {
 				/>
 				<RightSideBar
 					active={rightBarActive} setActive={setRightBarActive}
-					color={penColor} setColor={setPenColor}/>
+					color={penColor} setColor={setPenColor} leftActive={leftBarActive}/>
 			</View>
 			
 			<UndoRedoBar undo={undo} clearCanvas={clearCanvas} redo={redo}/>

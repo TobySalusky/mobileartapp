@@ -1,7 +1,8 @@
-import React from "react";
-import { Dimensions, Image, ScrollView, StyleSheet, TouchableHighlight, View } from "react-native";
-import { ThemeContext } from "../context/ThemeContext";
-import { TriangleColorPicker } from 'react-native-color-picker'
+import React from 'react';
+import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import { ThemeContext } from '../context/ThemeContext';
+import { fromHsv, TriangleColorPicker } from 'react-native-color-picker'
+import invert from 'invert-color';
 
 
 const window = {
@@ -9,9 +10,16 @@ const window = {
 	height: Dimensions.get('window').height
 }
 
-const RightSideBar = ({active, setActive, color, setColor}) => { // TODO: try react-native-svg
+const RightSideBar = ({active, setActive, color, setColor, leftActive}) => { // TODO: try react-native-svg
 	
 	const [theme] = React.useContext(ThemeContext)
+	const [customColor, setCustomColor] = React.useState('#FF0000');
+	const [usingCustom, setUsingCustom] = React.useState(false);
+	
+	const customSet = (col) => {
+		setCustomColor(col)
+		setColor(col)
+	}
 	
 	const colors = [
 		'black',
@@ -28,7 +36,7 @@ const RightSideBar = ({active, setActive, color, setColor}) => { // TODO: try re
 	]
 	
 	return (!active) ? null :
-		<View style={{width: '100%', height: '100%', position: 'absolute'}}>
+		<View pointerEvents="box-none" style={{width: '100%', height: '100%', position: 'absolute'}}>
 			<View style={[styles.sideBar, {backgroundColor: theme.sideBar, borderColor: theme.sideBarBorder}]}>
 				<TouchableHighlight
 					onPress={() => setActive(false)}>
@@ -44,31 +52,38 @@ const RightSideBar = ({active, setActive, color, setColor}) => { // TODO: try re
 						flexDirection: 'column',
 						flex: 1
 					}}>
+						<Swatch custom selectedColor={color} setColor={setColor} color={customColor}
+						        setUsingCustom={setUsingCustom}
+						        key={`custom`}/>
 						{colors.map(thisColor => (
 							<Swatch selectedColor={color} setColor={setColor} color={thisColor}
+							        setUsingCustom={setUsingCustom}
 							        key={`swatch-${thisColor}`}/>
 						))}
 					</View>
 				</ScrollView>
 			
 			</View>
-			
-			<View style={{
-				position: 'absolute',
-				top: 0,
-				left: 0,
-				width: window.width * 0.85,
-				height: window.height * 0.4,
-				backgroundColor: theme.bottomBar,
-				justifyContent: 'center', alignItems: 'center',
-				borderColor: theme.bottomBarBorder,
-				borderBottomWidth: 2,
-			}}>
-				<TriangleColorPicker
-					onColorSelected={color => alert(`Color selected: ${color}`)}
-					style={{width: '90%', height: '90%'}}
-				/>
-			</View>
+			{!usingCustom ? null :
+				<View style={{
+					position: 'absolute',
+					top: 0,
+					left: (leftActive) ? window.width * 0.15 : 0,
+					width: (leftActive) ? window.width * 0.7 : window.width * 0.85,
+					height: window.height * 0.4,
+					backgroundColor: theme.bottomBar,
+					justifyContent: 'center', alignItems: 'center',
+					borderColor: theme.bottomBarBorder,
+					borderBottomWidth: 2,
+				}}>
+					<TriangleColorPicker
+						hideControls
+						defaultColor={customColor}
+						onColorChange={col => customSet(fromHsv(col))}
+						style={{width: '90%', height: '90%'}}
+					/>
+				</View>
+			}
 		
 		</View>
 	
@@ -76,7 +91,7 @@ const RightSideBar = ({active, setActive, color, setColor}) => { // TODO: try re
 }
 export default RightSideBar
 
-const Swatch = ({selectedColor, color, setColor}) => {
+const Swatch = ({selectedColor, color, setColor, custom, setUsingCustom}) => {
 	
 	const [theme] = React.useContext(ThemeContext)
 	
@@ -90,8 +105,15 @@ const Swatch = ({selectedColor, color, setColor}) => {
 			marginBottom: 10
 		}]}>
 			<TouchableHighlight
-				onPress={() => setColor(color)}>
-				<View style={[styles.swatch, {backgroundColor: color}]}/>
+				onPress={() => {
+					setUsingCustom(custom)
+					setColor(color)
+				}}>
+				<View style={[styles.swatch, {backgroundColor: color}]}>
+					{!custom ? null :
+						<Text style={{color: invert(color, true), fontSize: 20, fontWeight: 'bold'}}>?</Text>
+					}
+				</View>
 			</TouchableHighlight>
 		</View>
 	);
