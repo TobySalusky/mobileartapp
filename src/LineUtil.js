@@ -164,6 +164,30 @@ export function erase(lines, eraseLine) {
 	return lines
 }
 
+export function selectTouching(lines, eraseLine) {
+	
+	if (eraseLine.type === 'dot') return lines.map(() => false)
+	
+	const selected = []
+	
+	for (const line of lines) {
+		
+		selected.push((line.type === 'dot') ? lineTouchesDot(line, eraseLine) : linesIntersect(eraseLine, line))
+	}
+	
+	return selected
+}
+
+export function eraseSelection(lines, selected) {
+	const newLines = []
+	
+	for (let i = 0; i < lines.length; i++) {
+		if (!selected[i]) newLines.push(lines[i])
+	}
+	
+	return newLines
+}
+
 export function eraseInPoly(lines, erasePoly) {
 	
 	
@@ -178,6 +202,21 @@ export function eraseInPoly(lines, erasePoly) {
 	}
 	
 	return lines
+}
+
+export function selectInPoly(lines, erasePoly) {
+	
+	
+	if (erasePoly.points.length < 3) return lines.map(() => false)
+	
+	const selected = []
+	
+	for (const line of lines) {
+		
+		selected.push(lineInPoly(line, erasePoly))
+	}
+	
+	return selected
 }
 
 export function dist([x1, y1], [x2, y2]) {

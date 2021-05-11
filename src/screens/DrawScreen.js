@@ -7,10 +7,11 @@ import { ThemeContext } from '../context/ThemeContext';
 import LeftSideBar from '../components/LeftSideBar';
 import RightSideBar from '../components/RightSideBar';
 import {
-	erase,
-	eraseInPoly,
+	eraseSelection,
 	exceptLast,
 	lastLine,
+	selectInPoly,
+	selectTouching,
 	smartLineSnapEnds,
 	smartSnapSelf,
 	snipIntersections,
@@ -35,6 +36,14 @@ const DrawScreen = ({navigation}) => {
 	const [lineWidth, setLineWidth] = React.useState(8);
 	const [eraserLineWidth, setEraserLineWidth] = React.useState(13);
 	const [tool, setTool] = React.useState('pen');
+	
+	const [selection, setSelection] = React.useState({
+		type: 'lines',
+		data: []
+	}); // either 'lines' or 'points'
+	const setSelectionType = (type) => setSelection({...selection, type})
+	const setSelectionData = (data) => setSelection({...selection, data})
+	
 	
 	const [theme] = React.useContext(ThemeContext);
 	const [leftBarActive, setLeftBarActive] = React.useState(false);
@@ -327,13 +336,15 @@ const DrawScreen = ({navigation}) => {
 			switch (tool) {
 				case 'eraser': {
 					const eraseLine = lastLine(lines);
-					linesRef.current = erase(exceptLast(lines), eraseLine);
+					const trueLines = exceptLast(lines)
+					linesRef.current = eraseSelection(trueLines, selectTouching(trueLines, eraseLine));
 					renderCanvas(ctx);
 					break;
 				}
 				case 'loop': {
 					const erasePoly = lastLine(lines);
-					linesRef.current = eraseInPoly(exceptLast(lines), erasePoly);
+					const trueLines = exceptLast(lines)
+					linesRef.current = eraseSelection(trueLines, selectInPoly(trueLines, erasePoly))
 					renderCanvas(ctx);
 					break;
 				}

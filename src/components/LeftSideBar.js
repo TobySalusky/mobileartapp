@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, Image, StyleSheet, TouchableHighlight, View } from 'react-native';
+import { Dimensions, Image, ScrollView, StyleSheet, TouchableHighlight, View } from 'react-native';
 import { ThemeContext } from '../context/ThemeContext';
 import Slider from "@react-native-community/slider";
 
@@ -31,40 +31,50 @@ const LeftSideBar = ({
 	return (!active) ? null :
 		<View style={[styles.sideBar, {backgroundColor: theme.sideBar, borderColor: theme.sideBarBorder}]}>
 			
-			<View style={{justifyContent: 'flex-start', alignItems: 'center', flexDirection: 'column'}}>
-				<TouchableHighlight onPress={() => setActive(false)} style={{marginTop: 10}}>
-					<Image
-						source={require('../../assets/deleteButton.png')}
-						style={[styles.button, {tintColor: theme.bottomBarButton}]}
-					/>
-				</TouchableHighlight>
-				
-				{tools.map(([image, thisTool], i) =>
-					<TouchableHighlight onPress={() => setTool(thisTool)} key={`tool-${i}`} style={{marginTop: 10}}>
-						<Image
-							source={image}
-							style={[styles.button, {tintColor: (tool === thisTool) ? theme.toolButtonActive : theme.bottomBarButton}]}
-						/>
-					</TouchableHighlight>
-				)}
-				
-				{toggles.map(([image, toggle, setToggle], i) =>
-					<TouchableHighlight onPress={() => setToggle(!toggle)} key={`toggle-${i}`} style={{marginTop: 10}}>
-						<Image
-							source={image}
-							style={[styles.button, {tintColor: (toggle) ? theme.optionToggle : theme.bottomBarButton}]}
-						/>
-					</TouchableHighlight>
-				)}
-			</View>
+			<TouchableHighlight onPress={() => setActive(false)} style={{marginTop: 10}}>
+				<Image
+					source={require('../../assets/deleteButton.png')}
+					style={[styles.button, {tintColor: theme.bottomBarButton}]}
+				/>
+			</TouchableHighlight>
 			
-			{!(tool === 'pen' || tool === 'line') ? null :
-				<SizeSlider width={lineWidth} setWidth={setLineWidth} max={15}/>
-			}
+			<ScrollView contentContainerStyle={{alignItems: 'center'}} directionalLockEnabled={true}
+			            automaticallyAdjustContentInsets={false} style={{alignSelf: 'stretch'}}>
+				<View style={{
+					justifyContent: 'flex-start',
+					alignItems: 'center',
+					flexDirection: 'column'
+				}}>
+					
+					{tools.map(([image, thisTool], i) =>
+						<TouchableHighlight onPress={() => setTool(thisTool)} key={`tool-${i}`} style={{marginTop: 10}}>
+							<Image
+								source={image}
+								style={[styles.button, {tintColor: (tool === thisTool) ? theme.toolButtonActive : theme.bottomBarButton}]}
+							/>
+						</TouchableHighlight>
+					)}
+					
+					{toggles.map(([image, toggle, setToggle], i) =>
+						<TouchableHighlight onPress={() => setToggle(!toggle)} key={`toggle-${i}`}
+						                    style={{marginTop: 10}}>
+							<Image
+								source={image}
+								style={[styles.button, {tintColor: (toggle) ? theme.optionToggle : theme.bottomBarButton}]}
+							/>
+						</TouchableHighlight>
+					)}
+					
+					{!(tool === 'pen' || tool === 'line') ? null :
+						<SizeSlider width={lineWidth} setWidth={setLineWidth} max={15}/>
+					}
+					
+					{!(tool === 'eraser') ? null :
+						<SizeSlider width={eraserWidth} setWidth={setEraserWidth} max={20}/>
+					}
+				</View>
+			</ScrollView>
 			
-			{!(tool === 'eraser') ? null :
-				<SizeSlider width={eraserWidth} setWidth={setEraserWidth} max={20}/>
-			}
 			
 			<View>
 				<TouchableHighlight onPress={toSaves} style={{marginBottom: 10}}>
@@ -99,23 +109,14 @@ const SizeSlider = ({width, setWidth, max = 10}) => {
 	
 	
 	return (
-		<View style={{transform: [{rotate: "-90deg"}]}}>
-			<Slider style={{width: 100, height: 20}} value={temp.current} onValueChange={val => temp.current = val}
-			        onSlidingComplete={val => setWidth(val)} minimumValue={1} maximumValue={max}
-			        thumbTintColor={theme.sliderHead} minimumTrackTintColor={theme.sliderActive}
-			        maximumTrackTintColor={theme.sliderInactive}/>
-		</View>
-		/*<View style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start'}}>
+		<View style={{height: 100, width: 20, paddingTop: 75}}>
 			<View style={{transform: [{rotate: "-90deg"}]}}>
 				<Slider style={{width: 100, height: 20}} value={temp.current} onValueChange={val => temp.current = val}
-				        onSlidingComplete={val => setWidth(val)} minimumValue={0} maximumValue={max}
+				        onSlidingComplete={val => setWidth(val)} minimumValue={1} maximumValue={max}
 				        thumbTintColor={theme.sliderHead} minimumTrackTintColor={theme.sliderActive}
 				        maximumTrackTintColor={theme.sliderInactive}/>
 			</View>
-			<Text>
-				{temp.current.toFixed(1)}
-			</Text>
-		</View>*/
+		</View>
 	)
 }
 
