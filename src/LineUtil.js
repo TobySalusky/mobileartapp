@@ -330,6 +330,12 @@ export function snipIntersections(lines, line) {
 	return change
 }
 
+export function colorSelected(lines, selected, color) {
+	for (const i in lines) {
+		if (selected[i]) lines[i].color = color
+	}
+}
+
 export function zigZagFill(lines, pos) {
 	// TODO:
 }

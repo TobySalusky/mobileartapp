@@ -7,6 +7,7 @@ import { ThemeContext } from '../context/ThemeContext';
 import LeftSideBar from '../components/LeftSideBar';
 import RightSideBar from '../components/RightSideBar';
 import {
+	colorSelected,
 	eraseSelection,
 	exceptLast,
 	lastLine,
@@ -37,13 +38,12 @@ const DrawScreen = ({navigation}) => {
 	const [eraserLineWidth, setEraserLineWidth] = React.useState(13);
 	const [tool, setTool] = React.useState('pen');
 	
-	const [selection, setSelection] = React.useState({
+	const [selectionActive, setSelectionActive] = React.useState(false)
+	const selection = React.useRef({
 		type: 'lines',
 		data: []
 	}); // either 'lines' or 'points'
-	const setSelectionType = (type) => setSelection({...selection, type})
-	const setSelectionData = (data) => setSelection({...selection, data})
-	
+	const [selectMode, setSelectMode] = React.useState('erase')
 	
 	const [theme] = React.useContext(ThemeContext);
 	const [leftBarActive, setLeftBarActive] = React.useState(false);
@@ -244,7 +244,9 @@ const DrawScreen = ({navigation}) => {
 	
 	const copyCanvasState = () => {
 		return {
-			lines: [...linesRef.current],
+			lines: linesRef.current.map(line => {
+				return {...line}
+			}),
 		};
 	};
 	
@@ -293,6 +295,21 @@ const DrawScreen = ({navigation}) => {
 	};
 	
 	const handlePanResponderMove = (event, gestureState) => {
+		
+		if (selectionActive && selection.current.type === 'lines') {
+			
+			const diffX = gestureState.dx, diffY = gestureState.dy
+			
+			selection.current.data.forEach((line, i) => {
+				const init = selection.current.init[i]
+				
+				line.points = init.points.map(([x, y]) => [x + diffX, y + diffY])
+				updateSvg(line)
+			})
+			
+			renderCanvas(ctxRef.current)
+		}
+		
 		if (!drawingRef.current) return;
 		
 		const point = gesturePoint(gestureState)
@@ -316,6 +333,16 @@ const DrawScreen = ({navigation}) => {
 		} else if (gestureState.x0 > window.width - sideTabOpenBuffer) {
 			setRightBarActive(true);
 		} else {
+			if (selectionActive) {
+				selection.current = {
+					...selection.current,
+					init: selection.current.data.map(line => {
+						return {...line}
+					}),
+				}
+				return;
+			}
+			
 			drawingRef.current = true;
 			
 			addUndo();
@@ -333,24 +360,45 @@ const DrawScreen = ({navigation}) => {
 			const lines = linesRef.current;
 			const ctx = ctxRef.current;
 			
+			if (selectionActive) return;
+			
 			switch (tool) {
-				case 'eraser': {
-					const eraseLine = lastLine(lines);
-					const trueLines = exceptLast(lines)
-					linesRef.current = eraseSelection(trueLines, selectTouching(trueLines, eraseLine));
-					renderCanvas(ctx);
-					break;
-				}
+				case 'eraser':
 				case 'loop': {
-					const erasePoly = lastLine(lines);
+					const eraseBy = lastLine(lines);
 					const trueLines = exceptLast(lines)
-					linesRef.current = eraseSelection(trueLines, selectInPoly(trueLines, erasePoly))
+					const selectedMask = tool === 'eraser' ? selectTouching(trueLines, eraseBy) : selectInPoly(trueLines, eraseBy)
+					
+					switch (selectMode) {
+						case 'erase': {
+							linesRef.current = eraseSelection(trueLines, selectedMask);
+							break;
+						}
+						case 'fill': {
+							colorSelected(trueLines, selectedMask, penColor)
+							linesRef.current = trueLines
+							break;
+						}
+						case 'move': {
+							const selectedLines = []
+							selectedMask.forEach((val, i) => {
+								if (val) selectedLines.push(trueLines[i])
+							})
+							selection.current = {
+								type: 'lines',
+								data: selectedLines
+							}
+							setSelectionActive(true)
+							linesRef.current = trueLines
+							break;
+						}
+					}
 					renderCanvas(ctx);
+					
 					break;
 				}
 				case 'pen':
 				case 'line': {
-					console.log(tool)
 					if (smart) {
 						let forceRender = false
 						
@@ -421,6 +469,15 @@ const DrawScreen = ({navigation}) => {
 		navigation.navigate('Saves')
 	}
 	
+	const cancelMove = () => {
+		setSelectionActive(false)
+		undo()
+	}
+	
+	const confirmMove = () => {
+		setSelectionActive(false)
+	}
+	
 	return (
 		<View
 			style={[
@@ -443,13 +500,15 @@ const DrawScreen = ({navigation}) => {
 					rigging={rigging} setRigging={onSetRigging}
 					lineWidth={lineWidth} setLineWidth={setLineWidth}
 					eraserWidth={eraserLineWidth} setEraserWidth={setEraserLineWidth}
+					selectMode={selectMode} setSelectMode={setSelectMode}
 				/>
 				<RightSideBar
 					active={rightBarActive} setActive={setRightBarActive}
 					color={penColor} setColor={setPenColor} leftActive={leftBarActive}/>
 			</View>
 			
-			<UndoRedoBar undo={undo} clearCanvas={clearCanvas} redo={redo}/>
+			<UndoRedoBar undo={undo} clearCanvas={clearCanvas} redo={redo} selectionActive={selectionActive}
+			             cancelMove={cancelMove} confirmMove={confirmMove}/>
 		</View>
 	);
 };

@@ -11,7 +11,7 @@ const window = {
 
 const LeftSideBar = ({
 	                     active, setActive, tool, setTool, toSettings, toSaves, smart, setSmart, rigging, setRigging,
-	                     lineWidth, setLineWidth, eraserWidth, setEraserWidth
+	                     lineWidth, setLineWidth, eraserWidth, setEraserWidth, selectMode, setSelectMode
                      }) => {
 	
 	const [theme] = React.useContext(ThemeContext)
@@ -26,6 +26,12 @@ const LeftSideBar = ({
 	const toggles = [
 		[require('../../assets/brain.png'), smart, setSmart],
 		[require('../../assets/rig.jpg'), rigging, setRigging],
+	]
+	
+	const selectToggles = [
+		[require('../../assets/eraserTool.png'), 'erase'],
+		[require('../../assets/move.png'), 'move'],
+		[require('../../assets/fillBucket.png'), 'fill'],
 	]
 	
 	return (!active) ? null :
@@ -64,6 +70,18 @@ const LeftSideBar = ({
 							/>
 						</TouchableHighlight>
 					)}
+					
+					{!(tool === 'eraser' || tool === 'loop') ? null :
+						selectToggles.map(([image, thisSelectMode], i) =>
+							<TouchableHighlight onPress={() => setSelectMode(thisSelectMode)} key={`toggle-${i}`}
+							                    style={{marginTop: 10}}>
+								<Image
+									source={image}
+									style={[styles.button, {tintColor: (selectMode === thisSelectMode) ? theme.optionToggle : theme.bottomBarButton}]}
+								/>
+							</TouchableHighlight>
+						)
+					}
 					
 					{!(tool === 'pen' || tool === 'line') ? null :
 						<SizeSlider width={lineWidth} setWidth={setLineWidth} max={15}/>
@@ -109,7 +127,7 @@ const SizeSlider = ({width, setWidth, max = 10}) => {
 	
 	
 	return (
-		<View style={{height: 100, width: 20, paddingTop: 75}}>
+		<View style={{height: 100, width: 20, paddingTop: 75, marginTop: 10}}>
 			<View style={{transform: [{rotate: "-90deg"}]}}>
 				<Slider style={{width: 100, height: 20}} value={temp.current} onValueChange={val => temp.current = val}
 				        onSlidingComplete={val => setWidth(val)} minimumValue={1} maximumValue={max}
