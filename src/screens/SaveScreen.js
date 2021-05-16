@@ -1,8 +1,11 @@
 import 'react-native-gesture-handler';
 import React from 'react';
-import { Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, SafeAreaView, ScrollView, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import { ThemeContext } from '../context/ThemeContext';
 import { DataURLContext } from '../context/DataURLContext';
+import { CanvasDimensContext } from '../context/CanvasDimensContext';
+import { SavesContext } from '../context/SavesContext';
+import { ApplySaveContext } from '../context/ApplySaveContext';
 
 
 const window = {
@@ -12,16 +15,22 @@ const window = {
 
 const SaveScreen = ({navigation}) => {
 	
+	const [saves] = React.useContext(SavesContext)
+	const [applySave] = React.useContext(ApplySaveContext);
+	
 	const [theme] = React.useContext(ThemeContext)
 	const [dataURL] = React.useContext(DataURLContext)
 	
-	const cols = 3
-	const arr = [...Array(20).keys()]
+	const [canvasViewDimens] = React.useContext(CanvasDimensContext);
 	
-	const pad = () => {
+	
+	const cols = 3
+	
+	const pad = (arr) => {
 		const diff = Math.ceil(arr.length / cols) * cols - arr.length
 		
 		const padded = [...arr]
+		padded.push({state: {lines: []}, undos: [], redos: []})
 		for (let i = 0; i < diff; i++) padded.push(null)
 		return padded
 	}
@@ -32,7 +41,7 @@ const SaveScreen = ({navigation}) => {
 	return (
 		<SafeAreaView style={[styles.container, {backgroundColor: theme.screenBack}]}>
 			
-			<Text style={{fontSize: 50, color: theme.text}}>
+			<Text style={{fontSize: 50, fontWeight: 'bold', color: theme.otherText}}>
 				Saves
 			</Text>
 			
@@ -41,7 +50,7 @@ const SaveScreen = ({navigation}) => {
 				
 				<View style={{flexDirection: 'column', alignItems: 'flex-start'}}>
 					{
-						[...Array(Math.ceil(arr.length / cols)).keys()].map(row => (
+						[...Array(Math.ceil(pad(saves).length / cols)).keys()].map(row => (
 							<View style={{
 								flexDirection: 'row',
 								flex: 1,
@@ -50,48 +59,39 @@ const SaveScreen = ({navigation}) => {
 								width: window.width * 0.85
 							}} key={`save-row-${row}`}>
 								{
-									pad(arr).slice(row * cols, (row + 1) * cols).map((entry, col) => (
-										<View style={{
+									pad(saves).slice(row * cols, (row + 1) * cols).map((entry, col) => {
+										const i = row * cols + col;
+										return <View style={{
 											width: window.width * 0.85 / cols * 0.9,
-											aspectRatio: window.width / window.height,
-											marginTop: 10
+											aspectRatio: canvasViewDimens.width / canvasViewDimens.height,
+											marginTop: 10,
 										}} key={`save-${row}-${col}`}>
 											{entry === null ? null :
-												<View style={{
-													height: '100%',
-													backgroundColor: theme.canvasBackground,
-													borderWidth: 2,
-													borderColor: theme.bottomBarBorder
-												}} key={`save-col-${entry}`}>
-													<Text>{row} {col}</Text>
-													{!dataURL ? null :
-														<View>
-															<Text>img</Text>
-															
-															<Image style={{
-																width: 100,
-																height: 50,
-																borderWidth: 1,
-																borderColor: 'red'
-															}} source={{uri: base64Icon}}/>
-															
-															
-															<Image style={{
-																width: 100,
-																height: 50,
-																borderWidth: 1,
-																borderColor: 'red'
-															}}
-															       source={{uri: dataURL}}
-															/>
-														</View>
+												<TouchableHighlight
+													onPress={() => {
+														applySave.func(pad(saves)[i], i, canvasViewDimens);
+														navigation.navigate('Draw')
+													}}
+												>
+													<View style={{
+														height: '100%',
+														backgroundColor: theme.canvasBackground,
+														borderWidth: 2,
+														borderColor: theme.bottomBarBorder,
+														justifyContent: 'center',
+														alignItems: 'center',
+														display: 'flex',
+													}} key={`save-col-${entry}`}>
 														
-													}
-												
-												</View>
+														<Text style={{fontSize: 20}}>
+															{(i === saves.length) ? '+' : `Save ${i + 1}`}
+														</Text>
+													
+													</View>
+												</TouchableHighlight>
 											}
 										</View>
-									))
+									})
 								}
 							</View>
 						))
@@ -110,9 +110,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'flex-start',
 		alignItems: 'center'
-	},
-	header: {
-		fontSize: 40,
 	},
 	image: {
 		width: 100,

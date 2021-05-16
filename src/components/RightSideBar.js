@@ -3,6 +3,7 @@ import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableHighlight, Vi
 import { ThemeContext } from '../context/ThemeContext';
 import { fromHsv, TriangleColorPicker } from 'react-native-color-picker'
 import invert from 'invert-color';
+import { CanvasDimensContext } from '../context/CanvasDimensContext';
 
 
 const window = {
@@ -15,6 +16,8 @@ const RightSideBar = ({active, setActive, color, setColor, leftActive}) => { // 
 	const [theme] = React.useContext(ThemeContext)
 	const [customColor, setCustomColor] = React.useState('#FF0000');
 	const [usingCustom, setUsingCustom] = React.useState(false);
+	
+	const [canvasViewDimens] = React.useContext(CanvasDimensContext);
 	
 	const customSet = (col) => {
 		setCustomColor(col)
@@ -45,7 +48,8 @@ const RightSideBar = ({active, setActive, color, setColor, leftActive}) => { // 
 						style={[styles.closeButton, {tintColor: theme.bottomBarButton}]}
 					/>
 				</TouchableHighlight>
-				<ScrollView>
+				<ScrollView contentContainerStyle={{alignItems: 'center'}} directionalLockEnabled={true}
+				            automaticallyAdjustContentInsets={false} style={{alignSelf: 'stretch'}}>
 					<View style={{
 						justifyContent: 'space-around',
 						alignItems: 'center',
@@ -70,7 +74,7 @@ const RightSideBar = ({active, setActive, color, setColor, leftActive}) => { // 
 					top: 0,
 					left: (leftActive) ? window.width * 0.15 : 0,
 					width: (leftActive) ? window.width * 0.7 : window.width * 0.85,
-					height: window.height * 0.4,
+					height: canvasViewDimens.height * 0.4,
 					backgroundColor: theme.bottomBar,
 					justifyContent: 'center', alignItems: 'center',
 					borderColor: theme.bottomBarBorder,

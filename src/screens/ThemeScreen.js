@@ -4,8 +4,7 @@ import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { ThemeContext } from '../context/ThemeContext';
 import ToggleSwitch from 'toggle-switch-react-native'
 import * as Themes from '../Themes';
-import { SmartSettingsContext } from "../context/SmartSettingsContext";
-
+import { SmartSettingsContext } from '../context/SmartSettingsContext';
 
 const ThemeScreen = ({navigation}) => {
 	
@@ -17,12 +16,16 @@ const ThemeScreen = ({navigation}) => {
 		Themes.light,
 		Themes.dark,
 		Themes.dracula,
+		Themes.gruvbox,
+		Themes.hacker,
+		Themes.cottonCandy,
+		Themes.christmas,
 	]
 	
 	const subHeader = {fontSize: 40, color: theme.subText}
 	
 	const toUpper = (camelCase) => {
-		const result = camelCase.replace(/([A-Z])/g, " $1");
+		const result = camelCase.replace(/([A-Z])/g, ' $1');
 		return result.charAt(0).toUpperCase() + result.slice(1);
 	}
 	

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, TouchableHighlight, View } from 'react-native';
 import { ThemeContext } from '../context/ThemeContext';
-import Slider from "@react-native-community/slider";
+import Slider from '@react-native-community/slider';
 
 
 const window = {
@@ -18,20 +18,22 @@ const LeftSideBar = ({
 	
 	const tools = [
 		[require('../../assets/penTool.png'), 'pen'],
-		[require('../../assets/eraserTool.png'), 'eraser'],
+		[require('../../assets/dottedLine.png'), 'eraser'],
 		[require('../../assets/circleSelect.png'), 'loop'],
 		[require('../../assets/line.png'), 'line'],
 	]
 	
 	const toggles = [
 		[require('../../assets/brain.png'), smart, setSmart],
-		[require('../../assets/rig.jpg'), rigging, setRigging],
+		//[require('../../assets/rig.jpg'), rigging, setRigging],
 	]
 	
 	const selectToggles = [
 		[require('../../assets/eraserTool.png'), 'erase'],
 		[require('../../assets/move.png'), 'move'],
 		[require('../../assets/fillBucket.png'), 'fill'],
+		[require('../../assets/sendBack.png'), 'sendBack'],
+		[require('../../assets/sendFront.png'), 'sendFront'],
 	]
 	
 	return (!active) ? null :
@@ -128,7 +130,7 @@ const SizeSlider = ({width, setWidth, max = 10}) => {
 	
 	return (
 		<View style={{height: 100, width: 20, paddingTop: 75, marginTop: 10}}>
-			<View style={{transform: [{rotate: "-90deg"}]}}>
+			<View style={{transform: [{rotate: '-90deg'}]}}>
 				<Slider style={{width: 100, height: 20}} value={temp.current} onValueChange={val => temp.current = val}
 				        onSlidingComplete={val => setWidth(val)} minimumValue={1} maximumValue={max}
 				        thumbTintColor={theme.sliderHead} minimumTrackTintColor={theme.sliderActive}

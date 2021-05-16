@@ -1,6 +1,6 @@
-import React from "react";
-import { Dimensions, Image, StyleSheet, TouchableHighlight, View } from "react-native";
-import { ThemeContext } from "../context/ThemeContext";
+import React from 'react';
+import { Dimensions, Image, StyleSheet, TouchableHighlight, View } from 'react-native';
+import { ThemeContext } from '../context/ThemeContext';
 
 
 const window = {

@@ -18,7 +18,10 @@ import {
 	snipIntersections,
 } from '../LineUtil';
 import { DataURLContext } from '../context/DataURLContext';
-import { SmartSettingsContext } from "../context/SmartSettingsContext";
+import { SmartSettingsContext } from '../context/SmartSettingsContext';
+import { CanvasDimensContext } from '../context/CanvasDimensContext';
+import { SavesContext } from '../context/SavesContext';
+import { ApplySaveContext } from '../context/ApplySaveContext';
 
 
 const window = {
@@ -32,6 +35,8 @@ const DrawScreen = ({navigation}) => {
 	
 	const canvasRef = React.useRef(null);
 	const ctxRef = React.useRef(null);
+	
+	const [canvasViewDimens, setCanvasViewDimens] = React.useContext(CanvasDimensContext);
 	
 	const linesRef = React.useRef([]);
 	const drawingRef = React.useRef(false);
@@ -47,6 +52,10 @@ const DrawScreen = ({navigation}) => {
 	}); // either 'lines' or 'points'
 	const [selectMode, setSelectMode] = React.useState('erase')
 	
+	const [saves, setSaves] = React.useContext(SavesContext);
+	const [applySave, setApplySave] = React.useContext(ApplySaveContext);
+	const [saveIndex, setSaveIndex] = React.useState(0);
+	
 	const [theme] = React.useContext(ThemeContext);
 	const [leftBarActive, setLeftBarActive] = React.useState(false);
 	const [rightBarActive, setRightBarActive] = React.useState(false);
@@ -59,6 +68,11 @@ const DrawScreen = ({navigation}) => {
 	const prevTool = React.useRef('invalidTool')
 	
 	const [dataURL, setDataURL] = React.useContext(DataURLContext)
+	
+	React.useEffect(() => {
+		const funcObj = {func: (save, index, dimens) => loadSave(save, index, dimens)};
+		setApplySave(funcObj);
+	}, [])
 	
 	React.useEffect(() => {
 		if (rigging && tool !== 'line') setRigging(false)
@@ -89,8 +103,8 @@ const DrawScreen = ({navigation}) => {
 	React.useEffect(() => {
 		const canvas = canvasRef.current;
 		
-		canvas.width = window.width;
-		canvas.height = window.height;
+		canvas.width = canvasViewDimens.width;
+		canvas.height = canvasViewDimens.height;
 		
 		const ctx = canvas.getContext('2d');
 		
@@ -101,7 +115,7 @@ const DrawScreen = ({navigation}) => {
 		ctxRef.current = ctx;
 		
 		renderCanvas(ctx);
-	}, []);
+	}, [canvasRef.current, canvasViewDimens]);
 	
 	const drawDot = (ctx, x, y, diameter, color) => {
 		ctx.fillStyle = color;
@@ -118,14 +132,24 @@ const DrawScreen = ({navigation}) => {
 	};
 	
 	const determineColor = () => {
-		if (tool === 'eraser' || tool === 'loop' || rigging) return '#FF000066';
+		if (rigging) return '#FF000066';
+		if (tool === 'eraser' || tool === 'loop') {
+			if (selectMode === 'erase') return '#FF000066';
+			if (selectMode === 'move') return '#00FF0066';
+			if (selectMode === 'fill') return '#0077FF66';
+			if (selectMode === 'sendBack' || selectMode === 'sendFront') return '#FF00FF66';
+			
+		}
 		return penColor;
 	};
 	
 	const renderCanvas = (ctx) => {
-		ctx.clearRect(0, 0, window.width, window.height);
+		renderLines(ctx, linesRef.current, canvasViewDimens)
+	};
+	
+	const renderLines = (ctx, lines, dimens) => {
+		ctx.clearRect(0, 0, dimens.width, dimens.height);
 		
-		const lines = linesRef.current;
 		for (const {color, points, lineWidth, svgPath} of lines) {
 			
 			if (points.length === 0 || !svgPath) continue;
@@ -178,10 +202,7 @@ const DrawScreen = ({navigation}) => {
 		ctx.stroke();
 	};
 	
-	const analyzeLine = () => {
-		const lines = linesRef.current;
-		const line = lines[lines.length - 1];
-		
+	const analyze = (line) => {
 		const points = line.points;
 		
 		const newPoints = [];
@@ -208,16 +229,20 @@ const DrawScreen = ({navigation}) => {
 			last = point;
 		}
 		
+		line.points = newPoints;
+		line.type = newPoints.length === 1 ? 'dot' : 'line';
+		line.svgPath = genSvgPath(newPoints);
+		line.minX = minX;
+		line.minY = minY;
+		line.maxX = maxX;
+		line.maxY = maxY;
+	}
+	
+	const analyzeLine = () => {
+		const lines = linesRef.current;
+		const line = lines[lines.length - 1];
 		
-		lines[lines.length - 1] = {
-			...line,
-			...{
-				points: newPoints,
-				type: newPoints.length === 1 ? 'dot' : 'line',
-				svgPath: genSvgPath(newPoints),
-				minX, minY, maxX, maxY,
-			},
-		};
+		analyze(line);
 	};
 	
 	const genSvgPath = (points) => {
@@ -344,6 +369,7 @@ const DrawScreen = ({navigation}) => {
 			drawingRef.current = true;
 			
 			addUndo();
+			
 			startLine();
 			appendPoint(gesturePoint(gestureState));
 			renderNew(ctxRef.current);
@@ -367,6 +393,16 @@ const DrawScreen = ({navigation}) => {
 					const trueLines = exceptLast(lines)
 					const selectedMask = tool === 'eraser' ? selectTouching(trueLines, eraseBy) : selectInPoly(trueLines, eraseBy)
 					
+					let hasSelected = false;
+					selectedMask.forEach((val) => {
+						if (val) hasSelected = true
+					});
+					
+					if (!hasSelected) {
+						undo();
+						return;
+					}
+					
 					switch (selectMode) {
 						case 'erase': {
 							linesRef.current = eraseSelection(trueLines, selectedMask);
@@ -386,8 +422,32 @@ const DrawScreen = ({navigation}) => {
 								type: 'lines',
 								data: selectedLines
 							}
-							setSelectionActive(true)
+							setSelectionActive((selectedLines.length > 0))
 							linesRef.current = trueLines
+							break;
+						}
+						case 'sendBack': {
+							const selectedLines = []
+							selectedMask.forEach((val, i) => {
+								if (val) selectedLines.push(trueLines[i])
+							})
+							linesRef.current = eraseSelection(trueLines, selectedMask);
+							
+							selectedLines.forEach(line => {
+								linesRef.current.unshift(line);
+							})
+							break;
+						}
+						case 'sendFront': {
+							const selectedLines = []
+							selectedMask.forEach((val, i) => {
+								if (val) selectedLines.push(trueLines[i])
+							})
+							linesRef.current = eraseSelection(trueLines, selectedMask);
+							
+							selectedLines.forEach(line => {
+								linesRef.current.push(line);
+							})
 							break;
 						}
 					}
@@ -432,9 +492,6 @@ const DrawScreen = ({navigation}) => {
 				
 			}
 		}
-		
-		//const ctx = ctxRef.current
-		//ctx.getImageData(0, 0, 100, 100).then(res => ctx.putImageData(res, 100, 100)).catch(e => console.log('rip'))
 	};
 	
 	const panResponderRef = PanResponder.create({
@@ -459,12 +516,28 @@ const DrawScreen = ({navigation}) => {
 	
 	const onSaveScreenPush = () => {
 		
-		canvasRef.current.toDataURL('image/png').then(res => {
+		/*canvasRef.current.toDataURL('image/png').then(res => {
 			console.log('YES', res)
 			setDataURL(res)
-		}).catch(e => console.log('frick', e))
+		}).catch(e => console.log('No', e))*/
+		
+		const newSaves = [...saves]
+		newSaves[saveIndex] = {state: copyCanvasState(), undos: [...undosRef.current], redos: [...redosRef.current]}
+		setSaves(newSaves)
 		
 		navigation.navigate('Saves')
+	}
+	
+	const loadSave = (save, newSaveIndex, dimens) => {
+		console.log(`loading ${newSaveIndex} (Save ${newSaveIndex + 1})`)
+		
+		setSaveIndex(newSaveIndex)
+		
+		undosRef.current = save.undos
+		redosRef.current = save.redos
+		linesRef.current = save.state.lines;
+		
+		renderLines(ctxRef.current, save.state.lines, dimens)
 	}
 	
 	const cancelMove = () => {
@@ -474,6 +547,7 @@ const DrawScreen = ({navigation}) => {
 	
 	const confirmMove = () => {
 		setSelectionActive(false)
+		linesRef.current.forEach(line => analyze(line));
 	}
 	
 	return (
@@ -487,6 +561,10 @@ const DrawScreen = ({navigation}) => {
 				<View
 					style={{flex: 1, backgroundColor: theme.canvasBackground}}
 					{...panResponderRef.panHandlers}
+					onLayout={e => {
+						const {width, height} = e.nativeEvent.layout
+						setCanvasViewDimens({width, height})
+					}}
 				>
 					<Canvas ref={canvasRef}/>
 				</View>
@@ -505,8 +583,8 @@ const DrawScreen = ({navigation}) => {
 					color={penColor} setColor={setPenColor} leftActive={leftBarActive}/>
 			</View>
 			
-			<UndoRedoBar undo={undo} clearCanvas={clearCanvas} redo={redo} selectionActive={selectionActive}
-			             cancelMove={cancelMove} confirmMove={confirmMove}/>
+			<UndoRedoBar undo={undo} clearCanvas={clearCanvas} redo={redo}
+			             selectionActive={selectionActive} cancelMove={cancelMove} confirmMove={confirmMove}/>
 		</View>
 	);
 };
