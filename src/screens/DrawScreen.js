@@ -18,6 +18,8 @@ import {
 	snipIntersections,
 } from '../LineUtil';
 import { DataURLContext } from '../context/DataURLContext';
+import { SmartSettingsContext } from "../context/SmartSettingsContext";
+
 
 const window = {
 	width: Dimensions.get('window').width,
@@ -51,11 +53,7 @@ const DrawScreen = ({navigation}) => {
 	const sideTabOpenBuffer = 25;
 	
 	const [smart, setSmart] = React.useState(true)
-	const [smartSettings, setSmartSettings] = React.useState({
-		snapEnds: true,
-		snapSelf: true,
-		assumeSnip: true,
-	})
+	const [smartSettings, setSmartSettings] = React.useContext(SmartSettingsContext)
 	
 	const [rigging, setRigging] = React.useState(false)
 	const prevTool = React.useRef('invalidTool')
