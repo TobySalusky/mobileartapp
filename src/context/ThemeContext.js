@@ -4,7 +4,7 @@ import * as Themes from '../Themes';
 export const ThemeContext = React.createContext();
 
 export const ThemeProvider = (props) => {
-	const [theme, setTheme] = React.useState(Themes.cottonCandy)
+	const [theme, setTheme] = React.useState(Themes.gruvbox)
 	
 	return <ThemeContext.Provider value={[theme, setTheme]}>{props.children}</ThemeContext.Provider>;
 }
